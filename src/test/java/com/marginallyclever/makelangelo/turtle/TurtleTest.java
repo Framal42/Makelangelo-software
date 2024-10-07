@@ -1,7 +1,10 @@
 package com.marginallyclever.makelangelo.turtle;
 
+import com.marginallyclever.convenience.LineCollection;
+import com.marginallyclever.convenience.LineSegment2D;
 import com.marginallyclever.convenience.Point2D;
 import org.junit.jupiter.api.Test;
+import org.kabeja.dxf.helpers.Point;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -284,4 +287,92 @@ class TurtleTest {
             assertTrue(new Point2D(i * 100, 0).distance(turtle.interpolate(d*(double)i/10.0)) < EPSILON);
         }
     }
+
+    //----Début des tests pour IFT 3913----
+
+    @Test
+    public void testGetBoundsHits0() {
+        //given / arrange
+        Turtle turtle = new Turtle();
+
+        //when / act
+        turtle.moveTo(10, -10);
+        Rectangle2D rect = turtle.getBounds();
+
+        //then / assert
+        assertEquals(0, rect.getX());
+        assertEquals(0, rect.getY());
+    }
+
+    @Test
+    public void testRotate() {
+        //given / arrange
+        Turtle turtle1 = new Turtle();
+        Turtle turtle2 = new Turtle();
+
+        //when / act
+        turtle1.moveTo(10, 10);
+        turtle1.penDown();
+        turtle1.moveTo(10, -10);
+        turtle1.rotate(90);
+
+        turtle2.moveTo(-10, 10);
+        turtle2.penDown();
+        turtle2.moveTo(10, 10);
+
+        //then / assert
+        assertEquals(turtle1.history, turtle2.history);
+    }
+
+    @Test
+    public void testAddLineSegments() {
+        //given / arrange
+        Turtle turtle = new Turtle();
+        LineCollection collection = new LineCollection();
+        Point2D pt1 = new Point2D(10, 10);
+        Point2D pt2 = new Point2D(10, -10);
+        LineSegment2D line1 = new LineSegment2D(pt1, pt2, Color.black);
+
+        //when / act
+        collection.add(line1);
+        turtle.addLineSegments(collection, 20, 1);
+
+        //then / assert
+        //Verify that the method executes the intended behavior, which is to redraw over the first line
+        assertEquals("[TOOL R0 G0 B0 A255 D1.000, TRAVEL X10.000 Y10.000, DRAW_LINE X10.000 Y-10.000, DRAW_LINE X10.000 Y10.000, DRAW_LINE X10.000 Y-10.000]", turtle.history.toString());
+    }
+
+    @Test
+    public void testGetFirstColor() {
+        //given / arrange
+        Turtle turtle = new Turtle();
+
+        //when / act
+        turtle.history.clear();
+
+        //then / assert
+        assertEquals(new Color(0,0,0), turtle.getFirstColor());
+    }
+
+    @Test
+    public void testInterpolateLargeT() {
+        //given / arrange
+        Turtle turtle = new Turtle();
+        turtle.moveTo(10, 10);
+        turtle.penDown();
+        turtle.moveTo(10, -10);
+
+        //then / assert
+        assertEquals(new Point2D(10, -10).x, turtle.interpolate(100).x);
+        assertEquals(new Point2D(10, -10).y, turtle.interpolate(100).y);
+    }
+
+
+
+    public static void main(String[] args) {
+        TurtleTest test = new TurtleTest();
+        test.testInterpolateLargeT();
+    }
 }
+
+
