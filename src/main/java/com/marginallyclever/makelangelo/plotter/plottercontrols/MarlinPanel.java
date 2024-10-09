@@ -162,7 +162,7 @@ public class MarlinPanel extends JPanel {
 		}
 	}
 
-	private void onHearOK() {
+	protected void onHearOK() {
 		SwingUtilities.invokeLater(() -> {
     		busyCount++;
     		sendQueuedCommand();
@@ -320,6 +320,14 @@ public class MarlinPanel extends JPanel {
 	}
 
 	// OBSERVER PATTERN ENDS
+
+	// Getters for testing purposes
+	List<MarlinPanelListener> getListeners() {
+		return listeners;
+	}
+	public int getBusyCount() {
+		return busyCount;
+	}
 
 	// TEST
 

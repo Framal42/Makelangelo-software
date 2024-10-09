@@ -1,6 +1,7 @@
 package com.marginallyclever.makelangelo.paper;
 
 import com.marginallyclever.util.PreferencesHelper;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,4 +58,64 @@ public class PaperTest {
 		Assertions.assertEquals(50,a.getCenterX());
 		Assertions.assertEquals(100,a.getCenterY());
 	}
+
+	// Début des tests pour IFT3913 (automne 2024)
+	@Test
+	public void testGetPaperLeft() {
+		// Arrange
+		Paper paper = new Paper();
+
+		// Act and assert #1
+		paper.setPaperSize(50, 50, 0, 80);
+		Assertions.assertEquals(-25, paper.getPaperLeft());
+
+		// Act and assert #2
+		paper.setPaperSize(250, 300, 0, 0);
+		Assertions.assertEquals(-125, paper.getPaperLeft());
+	}
+
+	@Test
+	public void testGetPaperRight() {
+		// Arrange
+		Paper paper = new Paper();
+
+		// Act and assert #1
+		paper.setPaperSize(50, 50, 0, 80);
+		Assertions.assertEquals(25, paper.getPaperRight());
+
+		// Act and assert #2
+		paper.setPaperSize(250, 300, 0, 0);
+		Assertions.assertEquals(125, paper.getPaperRight());
+	}
+
+	@Test
+	public void testGetPaperTop() {
+		// Arrange
+		Paper paper = new Paper();
+
+		// Act and assert #1
+		paper.setPaperSize(50, 70, 0, 80);
+		Assertions.assertEquals(35, paper.getPaperTop());
+
+		// Act and assert #2
+		paper.setPaperSize(250, 300, 0, 0);
+		Assertions.assertEquals(150, paper.getPaperTop());
+	}
+
+	@Test
+	public void testGetPaperBottom() {
+		// Arrange
+		Paper paper = new Paper();
+
+		// Act and assert #1
+		paper.setPaperSize(50, 70, 0, 80);
+		Assertions.assertEquals(-35, paper.getPaperBottom());
+
+		// Act and assert #2
+		paper.setPaperSize(250, 300, 0, 0);
+		Assertions.assertEquals(-150, paper.getPaperBottom());
+	}
+
+
+
 }

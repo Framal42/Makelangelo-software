@@ -71,4 +71,42 @@ public class MarlinPanelTest {
         Assertions.assertNotNull(ae.get());
         Assertions.assertEquals(MarlinPanelEvent.DID_NOT_FIND, ae.get().getID());
     }
+
+    // Début des tests pour IFT3913 (automne 2024)
+    @Test
+    public void testRemoveListener() {
+        // Arrange
+        MarlinPanel mi = new MarlinPanel(new ChooseConnection());
+        AtomicReference<MarlinPanelEvent> ae = new AtomicReference<>();
+        MarlinPanelListener listener = ae::set;
+
+        // Testing the list before adding a listener
+        Assertions.assertTrue(mi.getListeners().isEmpty(), "Listener list should be empty");
+
+        // Adding the listener and asserting if it worked
+        mi.addListener(listener);
+        Assertions.assertFalse(mi.getListeners().isEmpty(), "Listener list should not be empty");
+
+        // Removing the listener and asserting if it worked
+        mi.removeListener(listener);
+        Assertions.assertTrue(mi.getListeners().isEmpty(), "Listener list should be empty");
+    }
+
+    @Test
+    public void testGetIsBusy() {
+        // Arrange
+        MarlinPanel mi = new MarlinPanel(new ChooseConnection());
+        AtomicReference<MarlinPanelEvent> ae = new AtomicReference<>();
+        mi.addListener(ae::set);
+
+        // Asserting if the busy count equals to 20 (starting value) before initializing it
+        Assertions.assertEquals(20, mi.getBusyCount());
+        Assertions.assertFalse(mi.getIsBusy(), "Busy");
+
+        // Act and asserting that if the busyCount ever reaches 0 or less, it getIsBusy will return True
+        mi.onHearOK();
+        if (mi.getBusyCount() <= 0) {
+            Assertions.assertTrue(mi.getIsBusy(), "Not busy");
+        }
+    }
 }
