@@ -7,32 +7,64 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        jvm_flags: [
+          "-Xmx128m -XX:+HeapDumpOnOutOfMemoryError",
+          "-Xms1024m -Xmx2048m",
+          "-XX:+UseZGC",
+          "-XX:MaxMetaspaceSize=128m -XX:MaxNewSize=256m -XX:SurvivorRatio=128 -XX:MaxTenuringThreshold=0",
+          "-XX:+UseCompressedOops"
+        ]
+        common_jvm_flags_logs: [ "-XX:+UnlockDiagnosticVMOptions -Xlog:gc*:file=jvm.log:time,level,tags -XX:+PrintFlagsFinal" ] # Montrez toujours les logs JVM. Parce que les logs, c'est la vie !
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-java@v4.2.1
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'maven'
+      - uses: actions/setup-java@v4.2.1
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
 
-    - name: Build and Test with Maven
-      timeout-minutes: 15
-      run: ./mvnw -B verify
+      - name: Set environment variables
+        run: |
+          echo "MAVEN_OPTS=${{ matrix.jvm_flags }} ${{ matrix.common_jvm_flags_logs }}" >> $GITHUB_ENV
+        shell: bash
 
-    - name: Get JaCoCo Coverage
-      id: coverage  
-      run: |
-        coverage=$(python3 config/coverage.py target/site/jacoco/jacoco.csv) 
-        echo "COVERAGE=$coverage" >> $GITHUB_ENV
+      - name: Build and Test with Maven
+        timeout-minutes: 15
+        env:
+          MAVEN_OPTS: "${{ matrix.jvm_flags }} ${{ matrix.common_jvm_flags_logs }}"
+        run: |
+          xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage
 
-    - name: Fail if coverage has not improved.
-      run: |
-        coverage=$COVERAGE
-        threshold=24.46
-        if (( $(echo "$coverage - $threshold <= 0.1" | bc -l) )); then
-          echo "Coverage is not improved."
-          exit 1
-        else
-          echo "New coverage: $coverage%. Coverage is improved!"
-        fi
+      - name: Get JaCoCo Coverage
+        id: coverage
+        run: |
+          coverage=$(python3 config/coverage.py target/site/jacoco/jacoco.csv)
+          echo "COVERAGE=$coverage" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Fail if coverage has not improved.
+        run: |
+          coverage=$COVERAGE
+          threshold=24.46
+          if (( $(echo "$coverage - $threshold <= 0.1" | bc -l) )); then 
+            echo "Coverage is not improved."
+            exit 1
+          else
+            echo "New coverage: $coverage%. Coverage is improved!"
+          fi
+        shell: bash
+
+      - name: Display Build Log
+        if: always()
+        run: cat target/surefire-reports/*.txt || true
+        shell: bash
+
+      - name: Display JVM Log
+        if: always()
+        run: cat jvm.log  # Montrez toujours les logs JVM. Parce que les logs, c'est la vie !! (Attendez, j'ai déjà dit ça)
+        shell: bash
