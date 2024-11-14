@@ -16,15 +16,27 @@ jobs:
         java-version: '17'
         cache: 'maven'
 
+    - name: Set JVM Flags
+      run: |
+        JVM_FLAGS="Xmx1024m - Xms512m -XX:+UseG1GC - XX:MaxGCPauseMillis=200 -Dfile.encoding=UTF-8"
+        echo "JVM_FLAGS=$JVM_FLAGS" >> $GITHUB_ENV
+        echo "Using JVM Flags: $JVM_FLAGS" 
+
     - name: Build and Test with Maven
       timeout-minutes: 15
-      run: ./mvnw -B verify
+      env:
+        MAVEN_OPTS: ${{ env.JVM.FLAGS }}
+      run: |
+        echo "Compiling and running tests with the following JVM flags:"
+        echo $MAVEN_OPTS
+        ./mvnw -B verify
 
     - name: Get JaCoCo Coverage
       id: coverage  
       run: |
         coverage=$(python3 config/coverage.py target/site/jacoco/jacoco.csv) 
         echo "COVERAGE=$coverage" >> $GITHUB_ENV
+        echo "Code coverage: $coverage%" # Log the coverage value
 
     - name: Fail if coverage has not improved.
       run: |
